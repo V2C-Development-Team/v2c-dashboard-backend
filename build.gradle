@@ -16,9 +16,11 @@ targetCompatibility = prjCompat
 
 dependencies {
   implementation 'com.axonibyte.bonemesh:BoneMesh:2.0.1'
+  implementation 'com.lambdaworks:scrypt:1.4.0'
   implementation 'com.sparkjava:spark-core:2.9.2'
   implementation 'commons-cli:commons-cli:1.4'
   implementation 'org.json:json:20200518'
+  implementation 'org.mongodb:mongodb-driver-sync:4.1.0'
   implementation 'org.slf4j:slf4j-simple:1.7.30'
   testImplementation 'org.easymock:easymock:4.0.2'
   testImplementation 'junit:junit:4.13'

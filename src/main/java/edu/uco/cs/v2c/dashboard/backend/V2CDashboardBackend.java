@@ -29,7 +29,7 @@ import com.axonibyte.bonemesh.Logger;
 
 import edu.uco.cs.v2c.dashboard.backend.log.LogPrinter;
 import edu.uco.cs.v2c.dashboard.backend.net.APIDriver;
-import edu.uco.cs.v2c.dashboard.backend.V2CDashboardBackend;
+import edu.uco.cs.v2c.dashboard.backend.persistent.Database;
 
 /**
  * V2C Dispatcher.
@@ -42,10 +42,14 @@ public class V2CDashboardBackend {
   private static final String LOG_LABEL = "DISPATCHER CORE";
   
   private static final int DEFAULT_PORT = 2586;
+  private static final String DEFAULT_DATABASE = "127.0.0.1:27017";
+  private static final String DB_PARAM_LONG = "database";
+  private static final String DB_PARAM_SHORT = "d";
   private static final String PORT_PARAM_LONG = "port";
   private static final String PORT_PARAM_SHORT = "p";
 
   private static APIDriver aPIDriver = null; // the front end
+  private static Database database = null; // the database
   private static Logger logger = null; // the logger
   private static LogPrinter logPrinter = null; // the log printer
   
@@ -57,6 +61,8 @@ public class V2CDashboardBackend {
   public static void main(String[] args) {
     try {
       Options options = new Options();
+      options.addOption(DB_PARAM_SHORT, DB_PARAM_LONG, true,
+          "Specifies the target database server. Default = " + DEFAULT_DATABASE);
       options.addOption(PORT_PARAM_SHORT, PORT_PARAM_LONG, true,
           "Specifies the server's listening port. Default = " + DEFAULT_PORT);
       CommandLineParser parser = new DefaultParser();
@@ -64,11 +70,16 @@ public class V2CDashboardBackend {
       
       final int port = cmd.hasOption(PORT_PARAM_LONG)
           ? Integer.parseInt(cmd.getOptionValue(PORT_PARAM_LONG)) : DEFAULT_PORT;
+          
+      final String dbConnection = cmd.hasOption(DB_PARAM_LONG)
+          ? cmd.getOptionValue(DB_PARAM_LONG) : DEFAULT_DATABASE;
       
       logger = new Logger();
       logPrinter = new LogPrinter();
       logger.addListener(logPrinter);
       
+      logger.logInfo(LOG_LABEL, "Connecting to database...");
+      database = new Database(dbConnection);
       
       logger.logInfo(LOG_LABEL, "Spinning up API driver...");
       aPIDriver = APIDriver.build(port, "*"); // configure the front end
