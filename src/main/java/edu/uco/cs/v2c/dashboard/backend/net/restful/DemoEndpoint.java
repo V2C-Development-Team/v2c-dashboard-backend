@@ -31,6 +31,7 @@ package edu.uco.cs.v2c.dashboard.backend.net.restful;
 import org.json.JSONObject;
 
 import edu.uco.cs.v2c.dashboard.backend.net.APIVersion;
+import edu.uco.cs.v2c.dashboard.backend.net.auth.AuthToken;
 import spark.Request;
 import spark.Response;
 
@@ -52,7 +53,7 @@ public class DemoEndpoint extends Endpoint {
   /**
    * {@inheritDoc}
    */
-  @Override public JSONObject doEndpointTask(Request req, Response res) throws EndpointException {
+  @Override public JSONObject doEndpointTask(Request req, Response res, AuthToken authToken) throws EndpointException {
     return new JSONObject()
         .put("status", "ok")
         .put("info", "You've hit the demo endpoint.");

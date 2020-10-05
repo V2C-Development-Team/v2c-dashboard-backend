@@ -18,7 +18,9 @@ package edu.uco.cs.v2c.dashboard.backend.net.restful;
 import org.json.JSONObject;
 
 import edu.uco.cs.v2c.dashboard.backend.V2CDashboardBackend;
+import edu.uco.cs.v2c.dashboard.backend.log.Logger;
 import edu.uco.cs.v2c.dashboard.backend.net.APIVersion;
+import edu.uco.cs.v2c.dashboard.backend.net.auth.AuthToken;
 import spark.Request;
 import spark.Response;
 
@@ -54,15 +56,31 @@ public abstract class Endpoint {
     this.methods = methods;
     StringBuilder stringBuilder = new StringBuilder();
     if(methods.length == 0) {
-      V2CDashboardBackend.getLogger().logError("API",
+      Logger.onError("API",
           String.format("WARNING: Route %1$s loaded without HTTP methods.", route));
     } else {
       for(int i = 0; i < methods.length; i++) {
         stringBuilder.append(methods[i].name());
         if(i < methods.length - 1) stringBuilder.append(", ");
       }
-      V2CDashboardBackend.getLogger().logDebug("API",
+      Logger.onDebug("API",
           String.format("Loaded route %1$s with HTTP method(s) %2$s", route, stringBuilder.toString()));
+    }
+  }
+  
+  /**
+   * Checks to see if a user's authorization is appropriate for this endpoint.
+   * If the user does not have the appropriate permissions, throw an exception.
+   * 
+   * @param authToken the auth token
+   * @param request the HTTP request
+   * @param response the HTTP response
+   * @throws EndpointException if the credentials are not sufficient for this endpoint
+   */
+  public static void authorize(AuthToken authToken, Request request, Response response) throws EndpointException {
+    if(!authToken.hasClientPerms()) {
+      response.header("WWW-Authenticate", "V2C realm=dashboard");
+      throw new EndpointException(request, "User is not logged in.", 401);
     }
   }
   
@@ -93,15 +111,16 @@ public abstract class Endpoint {
    */
   public String onRequest(Request request, Response response) {
     try {
-      V2CDashboardBackend.getLogger().logInfo("API", String.format("%1$s accessed %2$s %3$s.",
+      Logger.onInfo("API", String.format("%1$s accessed %2$s %3$s.",
           request.ip(),
           request.requestMethod(),
           request.pathInfo()));
       
-      return doEndpointTask(request, response)
+      return doEndpointTask(request,response,
+          V2CDashboardBackend.getAuthTokenManager().authorize(request))
           .toString(2) + '\n';
     } catch(EndpointException e) {
-      V2CDashboardBackend.getLogger().logError("API", String.format("Response code %1$d: %2$s (%3$s)",
+      Logger.onError("API", String.format("Response code %1$d: %2$s (%3$s)",
           e.getErrorCode(),
           e.getMessage(),
           e.toString()));
@@ -112,7 +131,7 @@ public abstract class Endpoint {
           .put("info", e.toString())
           .toString(2) + '\n';
     } catch(Exception e) { // if we hit this block, something has gone terribly wrong (or the developer is dumb)
-      V2CDashboardBackend.getLogger().logError("API", e.getMessage());
+      Logger.onError("API", e.getMessage());
       e.printStackTrace();
       response.status(500);
       return new JSONObject()
@@ -127,9 +146,10 @@ public abstract class Endpoint {
    * 
    * @param request HTTP request
    * @param response HTTP response
+   * @param authToken the authentication token
    * @return ModelAndView containing the HTTP response (often in JSON)
    * @throws EndpointException thrown if the response is not good
    */
-  public abstract JSONObject doEndpointTask(Request request, Response response) throws EndpointException;
+  public abstract JSONObject doEndpointTask(Request request, Response response, AuthToken authToken) throws EndpointException;
   
 }

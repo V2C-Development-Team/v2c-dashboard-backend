@@ -25,10 +25,9 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 
-import com.axonibyte.bonemesh.Logger;
-
-import edu.uco.cs.v2c.dashboard.backend.log.LogPrinter;
+import edu.uco.cs.v2c.dashboard.backend.log.Logger;
 import edu.uco.cs.v2c.dashboard.backend.net.APIDriver;
+import edu.uco.cs.v2c.dashboard.backend.net.auth.AuthTokenManager;
 import edu.uco.cs.v2c.dashboard.backend.persistent.Database;
 
 /**
@@ -43,15 +42,17 @@ public class V2CDashboardBackend {
   
   private static final int DEFAULT_PORT = 2586;
   private static final String DEFAULT_DATABASE = "127.0.0.1:27017";
+  private static final String DEFAULT_PSK = "484dd6d1-9262-4975-a707-4238e08ed266";
   private static final String DB_PARAM_LONG = "database";
   private static final String DB_PARAM_SHORT = "d";
   private static final String PORT_PARAM_LONG = "port";
   private static final String PORT_PARAM_SHORT = "p";
+  private static final String PSK_PARAM_LONG = "preshared-key";
+  private static final String PSK_PARAM_SHORT = "k";
 
   private static APIDriver aPIDriver = null; // the front end
+  private static AuthTokenManager authTokenManager = null; // the auth token manager
   private static Database database = null; // the database
-  private static Logger logger = null; // the logger
-  private static LogPrinter logPrinter = null; // the log printer
   
   /**
    * Entry point.
@@ -65,6 +66,8 @@ public class V2CDashboardBackend {
           "Specifies the target database server. Default = " + DEFAULT_DATABASE);
       options.addOption(PORT_PARAM_SHORT, PORT_PARAM_LONG, true,
           "Specifies the server's listening port. Default = " + DEFAULT_PORT);
+      options.addOption(PSK_PARAM_SHORT, PSK_PARAM_LONG, true,
+          "Specifies the preshared key for authentication. Default = " + DEFAULT_PSK);
       CommandLineParser parser = new DefaultParser();
       CommandLine cmd = parser.parse(options, args);
       
@@ -73,38 +76,28 @@ public class V2CDashboardBackend {
           
       final String dbConnection = cmd.hasOption(DB_PARAM_LONG)
           ? cmd.getOptionValue(DB_PARAM_LONG) : DEFAULT_DATABASE;
-      
-      logger = new Logger();
-      logPrinter = new LogPrinter();
-      logger.addListener(logPrinter);
-      
-      logger.logInfo(LOG_LABEL, "Connecting to database...");
+            
+      final String psk = cmd.hasOption(PSK_PARAM_LONG)
+          ? cmd.getOptionValue(PSK_PARAM_LONG) : DEFAULT_PSK;
+          
+      Logger.onInfo(LOG_LABEL, "Connecting to database...");
       database = new Database(dbConnection);
       
-      logger.logInfo(LOG_LABEL, "Spinning up API driver...");
+      Logger.onInfo(LOG_LABEL, "Spinning up API driver...");
       aPIDriver = APIDriver.build(port, "*"); // configure the front end
+      authTokenManager = new AuthTokenManager(psk);
   
       // catch CTRL + C
       Runtime.getRuntime().addShutdownHook(new Thread() {
         @Override public void run() {
-          logger.logInfo(LOG_LABEL, "Shutting off API driver...");
+          Logger.onInfo(LOG_LABEL, "Shutting off API driver...");
           aPIDriver.halt();
-          logger.logInfo(LOG_LABEL, "Goodbye! ^_^");
-          logger.removeListener(logPrinter);
+          Logger.onInfo(LOG_LABEL, "Goodbye! ^_^");
         }
       });
     } catch(Exception e) {
-      logger.logError(LOG_LABEL, "Some exception was thrown during launch: " + e.getMessage());
+      Logger.onError(LOG_LABEL, "Some exception was thrown during launch: " + e.getMessage());
     }
-  }
-  
-  /**
-   * Retrieves the logger.
-   * 
-   * @return the logger
-   */
-  public static Logger getLogger() {
-    return logger;
   }
   
   /**
@@ -135,6 +128,24 @@ public class V2CDashboardBackend {
       return stringBuilder.toString();
     } catch(IOException e) { }
     return null;
+  }
+  
+  /**
+   * Retrieves the database connection.
+   * 
+   * @return the database connection
+   */
+  public static Database getDatabase() {
+    return database;
+  }
+  
+  /**
+   * Retrieves the authentication token manager.
+   * 
+   * @return the auth token manager
+   */
+  public static AuthTokenManager getAuthTokenManager() {
+    return authTokenManager;
   }
   
 }

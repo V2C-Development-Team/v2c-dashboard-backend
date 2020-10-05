@@ -113,7 +113,7 @@ public class Database {
    * @param uid the unique identifier of the user
    * @return the resulting user, or <code>null</code> if no such user exists
    */
-  public User getUserProfile(UUID uid) {
+  public User getUserProfileByID(UUID uid) {
     MongoDatabase database = mongoClient.getDatabase(DB_NAME);
     MongoCollection<Document> collection = database.getCollection(COLLECTION_USER);
     Document document = collection.find(Filters.eq("uid", uid.toString())).first();
@@ -131,10 +131,28 @@ public class Database {
    * @param email the user's email
    * @return the resulting user, or <code>null</code> if no such user exists
    */
-  public User getUserProfile(String email) {
+  public User getUserProfileByEmail(String email) {
     MongoDatabase database = mongoClient.getDatabase(DB_NAME);
     MongoCollection<Document> collection = database.getCollection(COLLECTION_USER);
     Document document = collection.find(Filters.eq("email", email)).first();
+    if(document != null) return new User()
+        .setEmail(document.getString("email"))
+        .setUsername(document.getString("username"))
+        .setPasswordHash(document.getString("phash"))
+        .setID(UUID.fromString(document.getString("uid")));
+    return null;
+  }
+  
+  /**
+   * Retrieves a particular user's profile by username if it exists
+   * 
+   * @param username the user's username
+   * @return the resulting user, or <code>null</code> if no such user exists
+   */
+  public User getUserProfileByUsername(String username) {
+    MongoDatabase database = mongoClient.getDatabase(DB_NAME);
+    MongoCollection<Document> collection = database.getCollection(COLLECTION_USER);
+    Document document = collection.find(Filters.eq("username", username)).first();
     if(document != null) return new User()
         .setEmail(document.getString("email"))
         .setUsername(document.getString("username"))
