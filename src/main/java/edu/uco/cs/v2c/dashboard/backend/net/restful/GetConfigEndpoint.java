@@ -39,7 +39,9 @@ public class GetConfigEndpoint extends Endpoint {
    */
   @Override public JSONObject doEndpointTask(Request req, Response res, AuthToken authToken) throws EndpointException {
     JSONObject response = new JSONObject()
-        .put("global", V2CDashboardBackend.getDatabase().getGlobalConfig());
+        .put("global", V2CDashboardBackend.getDatabase().getGlobalConfig())
+        .put("status", "ok")
+        .put("info", "Configs retrieved.");
     
     if(authToken.hasClientPerms()) {
       authorize(authToken, req, res);

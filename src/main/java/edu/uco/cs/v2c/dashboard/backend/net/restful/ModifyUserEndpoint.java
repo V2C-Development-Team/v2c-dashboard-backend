@@ -76,7 +76,7 @@ public class ModifyUserEndpoint extends Endpoint {
       res.status(200);
       return new JSONObject()
           .put("status", "ok")
-          .put("info", "User created.");
+          .put("info", "User updated.");
       
     } catch(JSONException e) {
       throw new EndpointException(req, "Syntax error: " + e.getMessage(), 400, e);

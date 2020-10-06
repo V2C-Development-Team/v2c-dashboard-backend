@@ -116,9 +116,10 @@ public abstract class Endpoint {
           request.requestMethod(),
           request.pathInfo()));
       
-      return doEndpointTask(request,response,
-          V2CDashboardBackend.getAuthTokenManager().authorize(request))
-          .toString(2) + '\n';
+      AuthToken authToken = V2CDashboardBackend.getAuthTokenManager().authorize(request);
+      if(authToken.getUser() != null) response.header("X-V2C-USER", authToken.getUser().getID().toString());
+      
+      return doEndpointTask(request, response, authToken).toString(2) + '\n';
     } catch(EndpointException e) {
       Logger.onError("API", String.format("Response code %1$d: %2$s (%3$s)",
           e.getErrorCode(),

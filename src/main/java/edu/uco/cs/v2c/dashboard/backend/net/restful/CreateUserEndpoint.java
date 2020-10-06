@@ -64,7 +64,7 @@ public class CreateUserEndpoint extends Endpoint {
           .setPassword(password)
           .setID(uuid));
       
-      res.status(200);
+      res.status(201);
       return new JSONObject()
           .put("status", "ok")
           .put("info", "User created.");
