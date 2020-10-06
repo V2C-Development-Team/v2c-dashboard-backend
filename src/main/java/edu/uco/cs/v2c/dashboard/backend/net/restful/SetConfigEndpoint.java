@@ -31,7 +31,7 @@ public class SetConfigEndpoint extends Endpoint {
   /**
    * Instantiates the endpoint.
    */
-  SetConfigEndpoint() {
+  public SetConfigEndpoint() {
     super("/config", APIVersion.VERSION_1, HTTPMethod.PUT);
   }
   

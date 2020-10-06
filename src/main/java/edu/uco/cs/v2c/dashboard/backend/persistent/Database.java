@@ -53,10 +53,10 @@ public class Database {
   public JSONObject getGlobalConfig() {
     MongoDatabase database = mongoClient.getDatabase(DB_NAME);
     MongoCollection<Document> collection = database.getCollection(COLLECTION_CONFIG);
-    Document document = collection.find(Filters.eq("global", "true")).first();
+    Document document = collection.find(Filters.eq("global", true)).first();
     if(document == null)
       return new JSONObject();
-    else return new JSONObject(document.toJson()).getJSONObject("config");
+    else return new JSONObject(document.getString("config"));
   }
   
   /**
@@ -68,11 +68,11 @@ public class Database {
     MongoDatabase database = mongoClient.getDatabase(DB_NAME);
     MongoCollection<Document> collection = database.getCollection(COLLECTION_CONFIG);
     Document document = new Document("global", true)
-        .append("config", config);
-    if(collection.find(Filters.eq("global", "true")).first() == null)
+        .append("config", config.toString());
+    if(collection.find(Filters.eq("global", true)).first() == null)
       collection.insertOne(document);
     else
-      collection.replaceOne(Filters.eq("global, true"), document);
+      collection.replaceOne(Filters.eq("global", true), document);
   }
   
   /**
@@ -85,8 +85,8 @@ public class Database {
     MongoDatabase database = mongoClient.getDatabase(DB_NAME);
     MongoCollection<Document> collection = database.getCollection(COLLECTION_CONFIG);
     Document document = collection.find(Filters.eq("uid", uid.toString())).first();
-    if(document != null) return new JSONObject(document.toJson()).getJSONObject("config");
-    return null;
+    if(document != null) return new JSONObject(document.getString("config"));
+    return new JSONObject();
   }
   
   /**
@@ -100,7 +100,7 @@ public class Database {
     MongoCollection<Document> collection = database.getCollection(COLLECTION_CONFIG);
     Document document = new Document("global", false)
         .append("uid", uid.toString())
-        .append("config", config);
+        .append("config", config.toString());
     if(collection.find(Filters.eq("uid", uid.toString())).first() == null)
       collection.insertOne(document);
     else

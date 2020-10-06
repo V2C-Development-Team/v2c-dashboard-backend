@@ -91,7 +91,7 @@ public class AuthTokenManager {
     if(authorizationHeader != null) {
       String email = null;
       String password = null;
-      int idx = authorizationHeader.indexOf("V2C ") + 11;
+      int idx = authorizationHeader.indexOf("V2C ") + 4;
       if(idx < authorizationHeader.length()) try {
         String authorizationData = new String(Base64.decode(authorizationHeader.substring(idx)));
         idx = authorizationData.indexOf(":", idx + 1);

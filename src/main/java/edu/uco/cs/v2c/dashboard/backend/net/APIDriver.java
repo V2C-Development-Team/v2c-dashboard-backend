@@ -39,9 +39,12 @@ import org.json.JSONObject;
 
 import edu.uco.cs.v2c.dashboard.backend.log.Logger;
 import edu.uco.cs.v2c.dashboard.backend.net.auth.AuthTokenManager;
-import edu.uco.cs.v2c.dashboard.backend.net.restful.DemoEndpoint;
+import edu.uco.cs.v2c.dashboard.backend.net.restful.CreateUserEndpoint;
 import edu.uco.cs.v2c.dashboard.backend.net.restful.Endpoint;
+import edu.uco.cs.v2c.dashboard.backend.net.restful.GetConfigEndpoint;
 import edu.uco.cs.v2c.dashboard.backend.net.restful.HTTPMethod;
+import edu.uco.cs.v2c.dashboard.backend.net.restful.ModifyUserEndpoint;
+import edu.uco.cs.v2c.dashboard.backend.net.restful.SetConfigEndpoint;
 
 /**
  * API Driver; manages RESTful and WebSocket API endpoints.
@@ -71,7 +74,10 @@ public class APIDriver implements Runnable {
     this.port = port;
     
     endpoints = new Endpoint[] {
-        new DemoEndpoint(),
+        new CreateUserEndpoint(),
+        new GetConfigEndpoint(),
+        new ModifyUserEndpoint(),
+        new SetConfigEndpoint()
     };
     
     staticFiles.location(RESPONDER_STATIC_FOLDER); // relative to the root of the classpath
